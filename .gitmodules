@@ -1,0 +1,3 @@
+[submodule "lib/librequest"]
+	path = lib/librequest
+	url = https://github.com/radams15/librequest.git
