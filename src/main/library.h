@@ -1,6 +1,0 @@
-#ifndef LIBJELLYFIN_C_LIBRARY_H
-#define LIBJELLYFIN_C_LIBRARY_H
-
-void hello();
-
-#endif //LIBJELLYFIN_C_LIBRARY_H
