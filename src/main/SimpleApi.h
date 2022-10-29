@@ -9,7 +9,7 @@
 #include <map>
 #include <vector>
 
-#include <cJSON.h>
+#include "lib/cJSON/cJSON.h"
 #include "Structures.h"
 
 typedef std::map<std::string, std::string> HeaderMap;
