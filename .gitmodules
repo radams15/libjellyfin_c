@@ -1,3 +1,6 @@
 [submodule "lib/librequest"]
 	path = lib/librequest
 	url = https://github.com/radams15/librequest.git
+[submodule "lib/cJSON"]
+	path = lib/cJSON
+	url = https://github.com/DaveGamble/cJSON

@@ -9,10 +9,8 @@
 #include <map>
 #include <vector>
 
-#include <json.hpp>
+#include <cJSON.h>
 #include "Structures.h"
-
-using json = nlohmann::json;
 
 typedef std::map<std::string, std::string> HeaderMap;
 
@@ -36,8 +34,8 @@ private:
 
     std::string get_url(std::string path);
 
-    json post(std::string url, HeaderMap headers, HeaderMap data);
-    json get(std::string url, HeaderMap headers);
+    void* post(std::string url, HeaderMap headers, HeaderMap data);
+    void* get(std::string url, HeaderMap headers);
 
     void login(std::string password);
 };

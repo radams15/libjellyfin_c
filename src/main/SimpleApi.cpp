@@ -10,6 +10,9 @@
 #include "Conf.h"
 #include "request.h"
 
+#define GET_STR(obj, key) cJSON_GetStringValue(cJSON_GetObjectItem(obj, key))
+#define GET_NUM(obj, key) cJSON_GetNumberValue(cJSON_GetObjectItem(obj, key))
+
 SimpleApi::SimpleApi(std::string server, std::string username, std::string password) : config() {
     this->server = server;
     this->username = username;
@@ -27,10 +30,22 @@ void SimpleApi::login(std::string password) {
     HeaderMap headers = get_headers();
     headers["Content-Type"] = "application/json";
 
-    json res = post(url, headers, data);
+    cJSON* res = (cJSON*) post(url, headers, data);
 
-    config["auth.user_id"] = res["User"]["Id"];
-    config["auth.token"] = res["AccessToken"];
+    /*config["auth.user_id"] = res["User"]["Id"];
+    config["auth.token"] = res["AccessToken"];*/
+
+    config["auth.user_id"] = GET_STR(
+                    cJSON_GetObjectItem(
+                            res, "User"
+                    ),
+                    "Id"
+                );
+
+    config["auth.token"] = GET_STR(
+                res,
+                "AccessToken"
+        );
 }
 
 HeaderMap SimpleApi::get_headers() {
@@ -68,7 +83,7 @@ std::string SimpleApi::get_url(std::string path) {
     return server + "/" + path;
 }
 
-json SimpleApi::post(std::string url, HeaderMap headers, HeaderMap data) {
+void* SimpleApi::post(std::string url, HeaderMap headers, HeaderMap data) {
     url = get_url(url);
 
     Headers_t* req_headers = NULL;
@@ -77,7 +92,13 @@ json SimpleApi::post(std::string url, HeaderMap headers, HeaderMap data) {
         req_headers = headers_append(req_headers, strdup(x.first.c_str()), strdup(x.second.c_str()));
     }
 
-    std::string data_str = json(data).dump();
+    cJSON* data_json = cJSON_CreateObject();
+    for(std::pair<std::string, std::string> x : data){
+        cJSON_AddStringToObject(data_json, x.first.c_str(), x.second.c_str());
+    }
+
+
+    std::string data_str = cJSON_Print(data_json);
 
     Res_t* res = req_post(url.c_str(), data_str.c_str(), req_headers);
 
@@ -87,12 +108,12 @@ json SimpleApi::post(std::string url, HeaderMap headers, HeaderMap data) {
         throw std::exception();
     }
 
-    json out = json::parse(res->data);
+    cJSON* out = cJSON_Parse(res->data);
 
     return out;
 }
 
-json SimpleApi::get(std::string url, HeaderMap headers) {
+void* SimpleApi::get(std::string url, HeaderMap headers) {
     url = get_url(url);
 
     Headers_t* req_headers = NULL;
@@ -109,28 +130,27 @@ json SimpleApi::get(std::string url, HeaderMap headers) {
         throw std::exception();
     }
 
-    json out = json::parse(res->data);
+    cJSON* out = cJSON_Parse(res->data);
 
     return out;
 }
 
-Item_t to_item(json in, ItemType_t type){
+Item_t to_item(cJSON* in, ItemType_t type){
     return (Item_t){
-        strdup(in["Name"].get<std::string>().c_str()),
-        strdup(in["Id"].get<std::string>().c_str()),
+        strdup(GET_STR(in, "Name")),
+        strdup(GET_STR(in, "Id")),
         type
     };
 }
 
 std::vector<Item_t> SimpleApi::get_media_folders() {
-    json items = get("Users/" + config["auth.user_id"] + "/Items", get_headers())["Items"];
+    cJSON* items = cJSON_GetObjectItem((cJSON*) get("Users/" + config["auth.user_id"] + "/Items", get_headers()), "Items");
 
     std::vector<Item_t> out;
 
-    for(int i=0 ; i<items.size() ; i++){
-        json item = items[i];
-
-        std::string type_str = item["CollectionType"];
+    cJSON* item;
+    cJSON_ArrayForEach(item, items){
+        std::string type_str = GET_STR(item, "CollectionType");
 
         ItemType_t type;
 
@@ -149,14 +169,13 @@ std::vector<Item_t> SimpleApi::get_media_folders() {
 }
 
 std::vector<Item_t> SimpleApi::get_folder_items(std::string folder_id) {
-    json items = get("Users/" + config["auth.user_id"] + "/Items?parentId=" + folder_id, get_headers())["Items"];
+    cJSON* items = cJSON_GetObjectItem((cJSON*) get("Users/" + config["auth.user_id"] + "/Items?parentId=" + folder_id, get_headers()), "Items");
 
     std::vector<Item_t> out;
 
-    for(int i=0 ; i<items.size() ; i++){
-        json item = items[i];
-
-        bool is_folder = item["IsFolder"];
+    cJSON* item;
+    cJSON_ArrayForEach(item, items){
+        bool is_folder = GET_NUM(item, "IsFolder");
 
         ItemType_t type;
 
@@ -173,13 +192,12 @@ std::vector<Item_t> SimpleApi::get_folder_items(std::string folder_id) {
 }
 
 std::vector<Item_t> SimpleApi::get_show_seasons(std::string show_id) {
-    json items = get("Shows/" + show_id + "/Seasons?userId=" + config["auth.user_id"], get_headers())["Items"];
+    cJSON* items = cJSON_GetObjectItem((cJSON*) get("Shows/" + show_id + "/Seasons?userId=" + config["auth.user_id"], get_headers()), "Items");
 
     std::vector<Item_t> out;
 
-    for(int i=0 ; i<items.size() ; i++){
-        json item = items[i];
-
+    cJSON* item;
+    cJSON_ArrayForEach(item, items){
         out.push_back(to_item(item, SEASON));
     }
 
@@ -187,13 +205,12 @@ std::vector<Item_t> SimpleApi::get_show_seasons(std::string show_id) {
 }
 
 std::vector<Item_t> SimpleApi::get_season_episodes(std::string show_id, std::string season_id) {
-    json items = get("Shows/" + show_id + "/Episodes/?seasonId=" + season_id + "?userId=" + config["auth.user_id"], get_headers())["Items"];
+    cJSON* items = cJSON_GetObjectItem((cJSON*) get("Shows/" + show_id + "/Episodes/?seasonId=" + season_id + "?userId=" + config["auth.user_id"], get_headers()), "Items");
 
     std::vector<Item_t> out;
 
-    for(int i=0 ; i<items.size() ; i++){
-        json item = items[i];
-
+    cJSON* item;
+    cJSON_ArrayForEach(item, items){
         out.push_back(to_item(item, EPISODE));
     }
 

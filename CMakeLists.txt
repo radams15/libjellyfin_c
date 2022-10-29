@@ -3,12 +3,12 @@ project(jellyfin)
 
 set(CMAKE_CXX_STANDARD 11)
 
-add_library(jellyfin SHARED src/main/SimpleApi.cpp src/main/SimpleApi.h src/main/Conf.h src/main/Structures.h)
+add_library(jellyfin SHARED src/main/SimpleApi.cpp src/main/SimpleApi.h src/main/Conf.h src/main/Structures.h lib/cJSON/cJSON.c lib/cJSON/cJSON_Utils.c)
 add_executable(test src/test/main.cpp)
 
 add_subdirectory(lib/librequest)
 
-include_directories(lib/ ${LIBREQ_HEADERS})
+include_directories(lib/ ${LIBREQ_HEADERS} lib/cJSON)
 
 include_directories(src/main)
 
