@@ -10,8 +10,11 @@
 #include "Conf.h"
 #include "net/request.h"
 
+#include "lib/cJSON/cJSON.h"
+
 #define GET_STR(obj, key) cJSON_GetStringValue(cJSON_GetObjectItem(obj, key))
 #define GET_NUM(obj, key) cJSON_GetNumberValue(cJSON_GetObjectItem(obj, key))
+#define GET_BOOL(obj, key) cJSON_IsTrue(cJSON_GetObjectItem(obj, key))
 
 SimpleApi::SimpleApi(std::string server, std::string username, std::string password) : config() {
     this->server = server;
@@ -175,7 +178,7 @@ std::vector<Item_t> SimpleApi::get_folder_items(std::string folder_id) {
 
     cJSON* item;
     cJSON_ArrayForEach(item, items){
-        bool is_folder = GET_NUM(item, "IsFolder");
+        bool is_folder = GET_BOOL(item, "IsFolder");
 
         ItemType_t type;
 
@@ -205,7 +208,7 @@ std::vector<Item_t> SimpleApi::get_show_seasons(std::string show_id) {
 }
 
 std::vector<Item_t> SimpleApi::get_season_episodes(std::string show_id, std::string season_id) {
-    cJSON* items = cJSON_GetObjectItem((cJSON*) get("Shows/" + show_id + "/Episodes/?seasonId=" + season_id + "?userId=" + config["auth.user_id"], get_headers()), "Items");
+    cJSON* items = cJSON_GetObjectItem((cJSON*) get("Shows/" + show_id + "/Episodes/?seasonId=" + season_id + "&userId=" + config["auth.user_id"], get_headers()), "Items");
 
     std::vector<Item_t> out;
 
@@ -215,4 +218,10 @@ std::vector<Item_t> SimpleApi::get_season_episodes(std::string show_id, std::str
     }
 
     return out;
+}
+
+std::string SimpleApi::get_stream(std::string episode_id) {
+    std::string url = server + "/Videos/" + episode_id + "/stream.mp4?Static=true&mediaSourceId=" + episode_id + "&api_key=" + config["auth.token"]+ "&deviceId=" DEVICE_ID;
+
+    return url;
 }

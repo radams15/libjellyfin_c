@@ -9,7 +9,6 @@
 #include <map>
 #include <vector>
 
-#include "lib/cJSON/cJSON.h"
 #include "Structures.h"
 
 typedef std::map<std::string, std::string> HeaderMap;
@@ -22,6 +21,7 @@ public:
     std::vector<Item_t> get_folder_items(std::string folder_id);
     std::vector<Item_t> get_show_seasons(std::string show_id);
     std::vector<Item_t> get_season_episodes(std::string show_id, std::string season_id);
+    std::string get_stream(std::string episode_id);
 
 private:
     std::string server;
