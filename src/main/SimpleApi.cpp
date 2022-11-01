@@ -31,7 +31,6 @@ void SimpleApi::login(std::string password) {
     data["Pw"] = password;
 
     HeaderMap headers = get_headers();
-    headers["Content-Type"] = "application/json";
 
     cJSON* res = (cJSON*) post(url, headers, data);
 
@@ -87,21 +86,27 @@ std::string SimpleApi::get_url(std::string path) {
 }
 
 void* SimpleApi::post(std::string url, HeaderMap headers, HeaderMap data) {
+    cJSON* data_json = cJSON_CreateObject();
+    for(HeaderMap::iterator x=data.begin() ; x!=data.end() ; x++){
+        cJSON_AddStringToObject(data_json, x->first.c_str(), x->second.c_str());
+    }
+
+    std::string data_str = cJSON_Print(data_json);
+
+    return post(url, headers, data_str);
+}
+
+
+void *SimpleApi::post(std::string url, HeaderMap headers, std::string data_str) {
     url = get_url(url);
+
+    headers["Content-Type"] = "application/json";
 
     Headers_t* req_headers = NULL;
 
-    for(std::pair<std::string, std::string> x : headers){
-        req_headers = headers_append(req_headers, strdup(x.first.c_str()), strdup(x.second.c_str()));
+    for(HeaderMap::iterator x=headers.begin() ; x!=headers.end() ; x++){
+        req_headers = headers_append(req_headers, strdup(x->first.c_str()), strdup(x->second.c_str()));
     }
-
-    cJSON* data_json = cJSON_CreateObject();
-    for(std::pair<std::string, std::string> x : data){
-        cJSON_AddStringToObject(data_json, x.first.c_str(), x.second.c_str());
-    }
-
-
-    std::string data_str = cJSON_Print(data_json);
 
     Res_t* res = req_post(url.c_str(), data_str.c_str(), req_headers);
 
@@ -113,25 +118,26 @@ void* SimpleApi::post(std::string url, HeaderMap headers, HeaderMap data) {
 
     cJSON* out = cJSON_Parse(res->data);
 
-    return out;
-}
+    return out;}
+
 
 void* SimpleApi::get(std::string url, HeaderMap headers) {
     url = get_url(url);
 
     Headers_t* req_headers = NULL;
 
-    for(std::pair<std::string, std::string> x : headers){
-        req_headers = headers_append(req_headers, strdup(x.first.c_str()), strdup(x.second.c_str()));
+    for(HeaderMap::iterator x=headers.begin() ; x!=headers.end() ; x++){
+        req_headers = headers_append(req_headers, strdup(x->first.c_str()), strdup(x->second.c_str()));
     }
 
     Res_t* res = req_get(url.c_str(), req_headers);
 
-    if(res->err){
+    /*if(res->err){
         std::cerr << "Get failed!" << std::endl;
 
         throw std::exception();
-    }
+    }*/
+
 
     cJSON* out = cJSON_Parse(res->data);
 
@@ -224,4 +230,24 @@ std::string SimpleApi::get_stream(std::string episode_id) {
     std::string url = server + "/Videos/" + episode_id + "/stream.mp4?Static=true&mediaSourceId=" + episode_id + "&api_key=" + config["auth.token"]+ "&deviceId=" DEVICE_ID;
 
     return url;
+}
+
+std::vector<std::string> SimpleApi::get_streams(std::string episode_id) {
+    std::string url = "/Items/" + episode_id + "/PlaybackInfo?userId=" + config["auth.user_id"] + "&StartTimeTicks=0&IsPlayback=true&AutoOpenLiveStream=true&MaxStreamingBitrate=140000000";
+
+    cJSON* items = cJSON_GetObjectItem((cJSON*) post(url, get_headers(), device_profile), "MediaSources");
+
+    std::vector<std::string> out;
+
+    cJSON* source;
+
+    cJSON_ArrayForEach(source, items){
+        std::string transcoding_url = server + GET_STR(source, "TranscodingUrl");
+
+        std::cout << transcoding_url << std::endl;
+
+        out.push_back(transcoding_url);
+    }
+
+    return out;
 }

@@ -22,6 +22,7 @@ public:
     std::vector<Item_t> get_show_seasons(std::string show_id);
     std::vector<Item_t> get_season_episodes(std::string show_id, std::string season_id);
     std::string get_stream(std::string episode_id);
+    std::vector<std::string> get_streams(std::string episode_id);
 
 private:
     std::string server;
@@ -35,6 +36,7 @@ private:
     std::string get_url(std::string path);
 
     void* post(std::string url, HeaderMap headers, HeaderMap data);
+    void* post(std::string url, HeaderMap headers, std::string data_str);
     void* get(std::string url, HeaderMap headers);
 
     void login(std::string password);

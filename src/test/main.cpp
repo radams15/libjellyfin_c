@@ -20,10 +20,15 @@ int main(){
                     std::cout << "\t\t" << season.name << std::endl;
 
                     for (auto episode: api.get_season_episodes(show.id, season.id)) {
-                        std::cout << "\t\t\t" << api.get_stream(episode.id) << std::endl;
+                        //std::cout << "\t\t\t" << api.get_stream(episode.id) << std::endl;
+                        api.get_streams(episode.id);
+                        goto end;
                     }
                 }
             }
         }
     }
+
+end:
+    return 0;
 }
