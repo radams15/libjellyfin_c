@@ -99,7 +99,6 @@ void* SimpleApi::post(std::string url, HeaderMap headers, HeaderMap data) {
 
 void *SimpleApi::post(std::string url, HeaderMap headers, std::string data_str) {
     url = get_url(url);
-
     headers["Content-Type"] = "application/json";
 
     Headers_t* req_headers = NULL;
@@ -118,7 +117,8 @@ void *SimpleApi::post(std::string url, HeaderMap headers, std::string data_str) 
 
     cJSON* out = cJSON_Parse(res->data);
 
-    return out;}
+    return out;
+}
 
 
 void* SimpleApi::get(std::string url, HeaderMap headers) {
