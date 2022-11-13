@@ -24,6 +24,7 @@
 					  seasonId: (NSString*) seasonId;
 
 - (NSString*) getStream: (NSString*) episodeId;
+- (NSString*) getTranscodedStream: (NSString*) episodeId;
 - (NSArray*) getStreams: (NSString*) episodeId;
 
 @end

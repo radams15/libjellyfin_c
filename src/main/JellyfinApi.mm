@@ -77,6 +77,10 @@ NSArray* toNSStrArry(std::vector<std::string> items){
     return CPP2NSSTR(((SimpleApi*)object)->get_stream(NS2CPPSTR(episodeId)));
 }
 
+- (NSString*) getTranscodedStream: (NSString*) episodeId {
+    return CPP2NSSTR(((SimpleApi*)object)->get_transcoded_stream(NS2CPPSTR(episodeId)));
+}
+
 - (NSArray*) getStreams: (NSString*) episodeId {
     return toNSStrArry(((SimpleApi *) object)->get_streams(NS2CPPSTR(episodeId)));
 }

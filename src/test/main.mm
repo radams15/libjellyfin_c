@@ -31,16 +31,12 @@ int main(){
                     for (int z=0 ; z<[episodes count] ; z++) {
                         NSLog(@"Episode %@\n", [[episodes objectAtIndex:z] getName]);
 
-                        NSLog(@"Stream %@\n", [api getStream: [[episodes objectAtIndex:z] getId]]);
+                        NSLog(@"MP4 Stream %@\n", [api getStream: [[episodes objectAtIndex:z] getId]]);
 
-                        //std::cout << "\t\t\t" << api.get_stream(episode.id) << std::endl;
-                        NSArray* streams = [api getStreams: [[episodes objectAtIndex:z] getId]];
 
-                        for(int a=0 ; a<[streams count] ; a++){
-                            NSLog(@"\tStream: %@\n", [streams objectAtIndex:a]);
-                        }
+                        NSLog(@"\t\tTranscoded stream: %@\n", [api getTranscodedStream: [[episodes objectAtIndex:z] getId]]);
 
-                        goto end;
+                        //goto end;
                     }
                 }
             }

@@ -109,11 +109,11 @@ void *SimpleApi::post(std::string url, HeaderMap headers, std::string data_str) 
 
     Res_t* res = req_post(url.c_str(), data_str.c_str(), req_headers);
 
-    if(res->err){
+    /*if(res->err){
         std::cerr << "Post failed!" << std::endl;
 
         throw std::exception();
-    }
+    }*/
 
     cJSON* out = cJSON_Parse(res->data);
 
@@ -233,7 +233,7 @@ std::string SimpleApi::get_stream(std::string episode_id) {
 }
 
 std::vector<std::string> SimpleApi::get_streams(std::string episode_id) {
-    std::string url = "/Items/" + episode_id + "/PlaybackInfo?userId=" + config["auth.user_id"] + "&StartTimeTicks=0&IsPlayback=true&AutoOpenLiveStream=true&MaxStreamingBitrate=140000000";
+    std::string url = "/Items/" + episode_id + "/PlaybackInfo?userId=" + config["auth.user_id"] + "&StartTimeTicks=0&IsPlayback=true&AutoOpenLiveStream=true";
 
     cJSON* items = cJSON_GetObjectItem((cJSON*) post(url, get_headers(), device_profile), "MediaSources");
 
@@ -244,10 +244,18 @@ std::vector<std::string> SimpleApi::get_streams(std::string episode_id) {
     cJSON_ArrayForEach(source, items){
         std::string transcoding_url = server + GET_STR(source, "TranscodingUrl");
 
-        std::cout << transcoding_url << std::endl;
-
         out.push_back(transcoding_url);
     }
 
     return out;
+}
+
+std::string SimpleApi::get_transcoded_stream(std::string episode_id) {
+    std::vector<std::string> streams = get_streams(episode_id);
+
+    if(streams.size() > 0){
+        return streams.at(0);
+    }
+
+    return get_stream(episode_id);
 }
