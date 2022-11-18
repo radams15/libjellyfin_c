@@ -31,12 +31,16 @@ int main(){
                     for (int z=0 ; z<[episodes count] ; z++) {
                         NSLog(@"Episode %@\n", [[episodes objectAtIndex:z] getName]);
 
-                        NSLog(@"MP4 Stream %@\n", [api getStream: [[episodes objectAtIndex:z] getId]]);
+                        if([[[episodes objectAtIndex:z] getName] isEqualToString: [NSString stringWithUTF8String:"Hyper-Transdimensional Bridge Rising"]]) {
+
+                            NSLog(@"MP4 Stream %@\n", [api getStream:[[episodes objectAtIndex:z] getId]]);
 
 
-                        NSLog(@"\t\tTranscoded stream: %@\n", [api getTranscodedStream: [[episodes objectAtIndex:z] getId]]);
+                            NSLog(@"\t\tTranscoded stream: %@\n",
+                                  [api getTranscodedStream:[[episodes objectAtIndex:z] getId]]);
 
-                        //goto end;
+                            goto end;
+                        }
                     }
                 }
             }
